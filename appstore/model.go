@@ -217,4 +217,27 @@ type (
 		VersionExternalIdentifier numericString `json:"version_external_identifier,omitempty"`
 		WebOrderLineItemID        string        `json:"web_order_line_item_id"`
 	}
+
+	HistoryResponse struct {
+		AppAppleId         string   `json:"app_apple_id"`
+		BundleID           string   `json:"bundle_id"`
+		Environment        string   `json:"environment"`
+		HasMore            bool     `json:"has_more"`
+		Revision           string   `json:"revision"`
+		SignedTransactions []string `json:"signed_transaction"`
+	}
+
+	ConsumptionRequest struct {
+		AccountTenure            int    `json:"account_tenure"`
+		AppAccountToken          string `json:"app_account_token"`
+		ConsumptionStatus        int    `json:"consumption_status"`
+		CustomerConsented        bool   `json:"customer_consented"`
+		DeliveryStatus           int    `json:"delivery_status"`
+		LifetimeDollarsPurchased int    `json:"lifetime_dollars_purchased"`
+		LifetimeDollarsRefunded  int    `json:"lifetime_dollars_refunded"`
+		Platform                 int    `json:"platform"`
+		PlayTime                 int    `json:"play_time"`
+		SampleContentProvided    bool   `json:"sample_content_provided"`
+		UserStatus               int    `json:"user_status"`
+	}
 )

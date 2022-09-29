@@ -38,17 +38,49 @@ type Client struct {
 var (
 	ErrAppStoreServer = errors.New("AppStore server error")
 
-	ErrInvalidJSON            = errors.New("The App Store could not read the JSON object you provided.")
-	ErrInvalidReceiptData     = errors.New("The data in the receipt-data property was malformed or missing.")
+	ErrInvalidJSON = errors.New(
+		"The App Store could not read the JSON object you provided.",
+	)
+	ErrInvalidReceiptData = errors.New(
+		"The data in the receipt-data property was malformed or missing.",
+	)
 	ErrReceiptUnauthenticated = errors.New("The receipt could not be authenticated.")
-	ErrInvalidSharedSecret    = errors.New("The shared secret you provided does not match the shared secret on file for your account.")
-	ErrServerUnavailable      = errors.New("The receipt server is not currently available.")
-	ErrReceiptIsForTest       = errors.New("This receipt is from the test environment, but it was sent to the production environment for verification. Send it to the test environment instead.")
-	ErrReceiptIsForProduction = errors.New("This receipt is from the production environment, but it was sent to the test environment for verification. Send it to the production environment instead.")
-	ErrReceiptUnauthorized    = errors.New("This receipt could not be authorized. Treat this the same as if a purchase was never made.")
+	ErrInvalidSharedSecret    = errors.New(
+		"The shared secret you provided does not match the shared secret on file for your account.",
+	)
+	ErrServerUnavailable = errors.New("The receipt server is not currently available.")
+	ErrReceiptIsForTest  = errors.New(
+		"This receipt is from the test environment, but it was sent to the production environment for verification. Send it to the test environment instead.",
+	)
+	ErrReceiptIsForProduction = errors.New(
+		"This receipt is from the production environment, but it was sent to the test environment for verification. Send it to the production environment instead.",
+	)
+	ErrReceiptUnauthorized = errors.New(
+		"This receipt could not be authorized. Treat this the same as if a purchase was never made.",
+	)
 
-	ErrInternalDataAccessError = errors.New("Internal data access error.")
-	ErrUnknown                 = errors.New("An unknown error occurred")
+	ErrInternalDataAccessError   = errors.New("Internal data access error.")
+	ErrInvalidAppIdentifierError = errors.New(
+		"Invalid app identifier.",
+	)
+	ErrInvalidRequestRevisionError = errors.New(
+		"Indicates an invalid request revision.",
+	)
+	ErrInvalidOriginalTransactionIdError = errors.New(
+		"Invalid original transaction identifier.",
+	)
+	ErrInvalidSortError = errors.New(
+		"Invalid sort parameter.",
+	)
+	ErrInvalidStartDateError                   = errors.New("Invalid start date.") //
+	ErrInvalidEndDate                          = errors.New("Invalid end date.")
+	ErrInvalidProductTypeError                 = errors.New("Invalid product type.")
+	ErrInvalidProductId                        = errors.New("Invalid product id.")
+	ErrInvalidSubscriptionGroupIdentifierError = errors.New("Invalid subscription group.")
+	ErrIdentifierError                         = errors.New("Invalid indentifier.")
+	ErrInvalidInAppOwnershipTypeError          = errors.New("Invalid in-app ownership type.")
+	ErrInvalidExcludeRevokedError              = errors.New("Invalid exclude_revoked.")
+	ErrUnknown                                 = errors.New("An unknown error occurred")
 )
 
 // HandleError returns error message by status code
@@ -75,6 +107,28 @@ func HandleError(status int) error {
 		e = ErrInternalDataAccessError
 	case 21010:
 		e = ErrReceiptUnauthorized
+	case 4000002:
+		e = ErrInvalidAppIdentifierError
+	case 4000005:
+		e = ErrInvalidRequestRevisionError
+	case 4000008:
+		e = ErrInvalidOriginalTransactionIdError
+	case 4000021:
+		e = ErrInvalidSortError
+	case 4000015:
+		e = ErrInvalidStartDateError
+	case 4000016:
+		e = ErrInvalidEndDate
+	case 4000022:
+		e = ErrInvalidProductTypeError
+	case 4000023:
+		e = ErrInvalidProductId
+	case 4000024:
+		e = ErrInvalidSubscriptionGroupIdentifierError
+	case 4000026:
+		e = ErrInvalidInAppOwnershipTypeError
+	case 4000025:
+		e = ErrInvalidExcludeRevokedError
 	default:
 		if status >= 21100 && status <= 21199 {
 			e = ErrInternalDataAccessError
@@ -126,12 +180,21 @@ func (c *Client) Verify(ctx context.Context, reqBody IAPRequest, result interfac
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode >= 500 {
-		return fmt.Errorf("Received http status code %d from the App Store: %w", resp.StatusCode, ErrAppStoreServer)
+		return fmt.Errorf(
+			"Received http status code %d from the App Store: %w",
+			resp.StatusCode,
+			ErrAppStoreServer,
+		)
 	}
 	return c.parseResponse(resp, result, ctx, reqBody)
 }
 
-func (c *Client) parseResponse(resp *http.Response, result interface{}, ctx context.Context, reqBody IAPRequest) error {
+func (c *Client) parseResponse(
+	resp *http.Response,
+	result interface{},
+	ctx context.Context,
+	reqBody IAPRequest,
+) error {
 	// Read the body now so that we can unmarshal it twice
 	buf, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -167,7 +230,11 @@ func (c *Client) parseResponse(resp *http.Response, result interface{}, ctx cont
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode >= 500 {
-			return fmt.Errorf("Received http status code %d from the App Store Sandbox: %w", resp.StatusCode, ErrAppStoreServer)
+			return fmt.Errorf(
+				"Received http status code %d from the App Store Sandbox: %w",
+				resp.StatusCode,
+				ErrAppStoreServer,
+			)
 		}
 
 		return json.NewDecoder(resp.Body).Decode(result)
